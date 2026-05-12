@@ -1,4 +1,5 @@
 // src/pages/activities.js
+import React from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { getSession, getActivities, deleteActivity } from '@/lib/db'
@@ -18,12 +19,13 @@ export default function Activities() {
     const session = getSession()
     if (!session) { router.replace('/login'); return }
     setUser(session)
-    setActs(getActivities(session.uid))
+    getActivities(session.uid)
+  .then(setActs)
   }, [router])
 
   function handleDelete(id) {
     if (!confirm('¿Eliminar?')) return
-    deleteActivity(user.uid, id)
+    deleteActivity(id)
     setActs(prev => prev.filter(a => a.id !== id))
     toast.success('Eliminada')
   }
@@ -37,7 +39,7 @@ export default function Activities() {
           Mis Actividades
           <span className="ml-2 text-sm font-normal text-gray-400">({acts.length})</span>
         </h1>
-        <button onClick={() => router.push('/generator')} className="btn-primary text-xs">✨ Nueva</button>
+        <button onClick={() => router.push('/generator')} className="btn-primary text-xs">Nueva</button>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-5">
@@ -52,7 +54,7 @@ export default function Activities() {
 
       {shown.length === 0 ? (
         <div className="flex flex-col items-center py-16 gap-3 text-center bg-white rounded-2xl border-2 border-dashed border-gray-200">
-          <span className="text-4xl">📂</span>
+          <span className="text-4xl"></span>
           <p className="font-bold text-gray-700">Sin actividades</p>
           <p className="text-sm text-gray-400">No hay actividades con este filtro</p>
         </div>

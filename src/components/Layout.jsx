@@ -1,4 +1,5 @@
 // src/components/Layout.jsx
+import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { clearSession } from '@/lib/db'
@@ -23,7 +24,6 @@ export default function Layout({ children, user, active }) {
       {/* Sidebar */}
       <aside className="fixed top-0 left-0 h-full w-56 bg-white border-r border-gray-100 flex flex-col z-50 shadow-sm">
         <div className="flex items-center gap-2.5 px-5 py-5 border-b border-gray-100">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-base">📚</div>
           <span className="font-bold text-xl text-gray-900">Edu<span className="text-blue-600">Gen</span>AI</span>
         </div>
 
@@ -60,7 +60,7 @@ export default function Layout({ children, user, active }) {
             {NAV.find(n => n.key === active)?.label ?? 'EduGenAI'}
           </h1>
           <button onClick={() => router.push('/generator')} className="btn-primary text-xs">
-            <Sparkles size={14} /> Nueva Actividad
+           Nueva Actividad
           </button>
         </header>
         <main className="flex-1 p-7">{children}</main>

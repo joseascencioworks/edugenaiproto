@@ -1,4 +1,5 @@
 // src/pages/dashboard.js
+import React from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { getSession, getActivities, deleteActivity } from '@/lib/db'
@@ -15,12 +16,13 @@ export default function Dashboard() {
     const session = getSession()
     if (!session) { router.replace('/login'); return }
     setUser(session)
-    setActivities(getActivities(session.uid))
+    getActivities(session.uid)
+  .then(setActivities)
   }, [router])
 
   function handleDelete(id) {
     if (!confirm('¿Eliminar esta actividad?')) return
-    deleteActivity(user.uid, id)
+    deleteActivity(id)
     setActivities(prev => prev.filter(a => a.id !== id))
     toast.success('Eliminada')
   }
@@ -32,10 +34,10 @@ export default function Dashboard() {
     other: activities.filter(a => ['Mapa Mental','Caso'].includes(a.type)).length,
   }
   const stats = [
-    { label:'Total',          value:counts.total, emoji:'📄', bg:'#eff6ff' },
-    { label:'Cuestionarios',  value:counts.quiz,  emoji:'✅', bg:'#f0fdf4' },
-    { label:'Ensayos',        value:counts.essay, emoji:'✍️', bg:'#fdf4ff' },
-    { label:'Mapas & Casos',  value:counts.other, emoji:'🗺️', bg:'#fff7ed' },
+    { label:'Total',          value:counts.total, emoji:'', bg:'#eff6ff' },
+    { label:'Cuestionarios',  value:counts.quiz,  emoji:'', bg:'#f0fdf4' },
+    { label:'Ensayos',        value:counts.essay, emoji:'', bg:'#fdf4ff' },
+    { label:'Mapas & Casos',  value:counts.other, emoji:'', bg:'#fff7ed' },
   ]
 
   return (
@@ -47,13 +49,13 @@ export default function Dashboard() {
           style={{ background:'radial-gradient(ellipse 60% 80% at 80% 50%,rgba(124,58,237,.25) 0,transparent 60%)' }} />
         <div className="relative">
           <h1 className="text-2xl font-bold text-white mb-1">
-            ¡Hola, {user?.name?.split(' ')[0] ?? 'Docente'}! 👋
+            ¡Hola, {user?.name?.split(' ')[0] ?? 'Docente'}! 
           </h1>
           <p className="text-blue-200 text-sm">Crea actividades educativas con el poder de la IA</p>
         </div>
         <button onClick={() => router.push('/generator')}
           className="relative flex items-center gap-2 bg-white/10 border border-white/20 text-white font-semibold text-sm px-4 py-3 rounded-xl hover:bg-white/20 transition-all flex-shrink-0">
-          ✨ Nueva Actividad
+          Nueva Actividad
         </button>
       </div>
 
@@ -79,10 +81,10 @@ export default function Dashboard() {
 
       {activities.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 gap-3 bg-white rounded-2xl border-2 border-dashed border-gray-200 text-center">
-          <span className="text-4xl">📋</span>
+          <span className="text-4xl"></span>
           <p className="font-bold text-gray-700">Sin actividades todavía</p>
-          <p className="text-sm text-gray-400">Genera tu primera actividad con IA</p>
-          <button onClick={() => router.push('/generator')} className="btn-primary mt-1">✨ Crear actividad</button>
+          <p className="text-sm text-gray-400"></p>
+          <button onClick={() => router.push('/generator')} className="btn-primary mt-1">Crear actividad</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

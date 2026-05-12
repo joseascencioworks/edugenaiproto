@@ -1,4 +1,5 @@
 // src/pages/generator.js
+import React from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { getSession, saveActivity } from '@/lib/db'
@@ -7,15 +8,25 @@ import md2html from '@/lib/markdown'
 import { exportPdf, exportDoc } from '@/lib/export'
 import toast from 'react-hot-toast'
 
-const SUBJECTS = ['Matemáticas','Español','Ciencias','Historia','Geografía','Inglés','Física','Química','Biología','Arte','Otra']
-const LEVELS   = ['Preescolar','Primaria (1°–3°)','Primaria (4°–6°)','Secundaria','Preparatoria','Universidad','Posgrado']
-const TYPES    = [
-  { value:'Cuestionario', emoji:'📝' },
-  { value:'Mapa Mental',  emoji:'🗺️' },
-  { value:'Ensayo',       emoji:'✍️' },
-  { value:'Caso',         emoji:'🔍' },
-  { value:'Ejercicios',   emoji:'🧮' },
+const SUBJECTS = [
+  'Accesibilidad de Contenidos',
+  'Inglés',
+  'Desarrollo de Interfaces',
+  'Control de Calidad de Software',
+  'Matemáticas',
+  'Sistemas Operativos',
+  'Programación'
 ]
+
+const LEVELS   = ['Media Superior (Preparatoria)','Superior (Universidad)']
+const TYPES    = [
+  { value:'Cuestionario'},
+  { value:'Mapa Mental'},
+  { value:'Ensayo'},
+  { value:'Caso'},
+  { value:'Ejercicios'},
+]
+
 const COLORS = {
   'Cuestionario':{ bg:'#eff6ff', fg:'#2563eb' },
   'Mapa Mental': { bg:'#f0fdf4', fg:'#059669' },
@@ -33,7 +44,7 @@ export default function Generator() {
   const [subject, setSubject] = useState('Matemáticas')
   const [custom,  setCustom]  = useState('')
   const [topic,   setTopic]   = useState('')
-  const [level,   setLevel]   = useState('Secundaria')
+  const [level,   setLevel]   = useState('Superior (Universidad)')
   const [type,    setType]    = useState('Cuestionario')
   const [qty,     setQty]     = useState('10')
   const [diff,    setDiff]    = useState('Intermedio')
@@ -45,32 +56,63 @@ export default function Generator() {
     setUser(session)
   }, [router])
 
-  async function generate() {
-    if (!topic.trim()) { toast.error('Ingresa el tema'); return }
-    setGen(true); setResult(null)
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: subject === 'Otra' ? (custom || 'Materia') : subject,
-          topic, level, type, qty, diff, extra,
-          userId: user.uid,
-        }),
-      })
-      if (!res.ok) { const e = await res.json(); throw new Error(e.message) }
-      const data = await res.json()
+  // REEMPLAZA COMPLETAMENTE ESTA FUNCIÓN EN generator.js
 
-      // Save to localStorage via db adapter
-      saveActivity(user.uid, data)
-      setResult(data)
-      toast.success('¡Actividad generada! ✨')
-    } catch (e) {
-      toast.error(e.message || 'Error al generar')
-    } finally {
-      setGen(false)
-    }
+async function generate() {
+
+  if (!topic.trim()) {
+    toast.error('Ingresa el tema')
+    return
   }
+
+  setGen(true)
+  setResult(null)
+
+  try {
+
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        subject,
+        topic,
+        level,
+        type,
+        qty,
+        diff,
+        extra,
+        userId: user.uid,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Error al generar')
+    }
+
+    // Guardar en Firestore
+    await saveActivity(user.uid, data)
+
+    // Mostrar resultado
+    setResult(data)
+
+    toast.success('¡Actividad generada con IA!')
+
+  } catch (e) {
+
+    console.error(e)
+
+    toast.error(e.message || 'Error al generar')
+
+  } finally {
+
+    setGen(false)
+
+  }
+}
 
   const tc = result ? (COLORS[result.type] || { bg:'#f3f4f6', fg:'#374151' }) : null
 
@@ -142,18 +184,18 @@ export default function Generator() {
               hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 transition-all">
             {generating
               ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>Generando…</>
-              : '✨ Generar con IA'}
+              : ' Generar con IA'}
           </button>
-          <p className="text-center text-[11px] text-gray-400 mt-2">Ctrl + Enter para generar</p>
+          <p className="text-center text-[11px] text-gray-400 mt-2"></p>
         </div>
 
         {/* ── RESULT ── */}
         <div className="card p-6 min-h-[480px] flex flex-col">
           {!result && !generating && (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-400 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-3xl">🤖</div>
+              <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-3xl"></div>
               <p className="font-semibold text-gray-600">Listo para generar</p>
-              <p className="text-sm max-w-xs">Completa el formulario y presiona "Generar con IA"</p>
+              <p className="text-sm max-w-xs"></p>
             </div>
           )}
           {generating && (

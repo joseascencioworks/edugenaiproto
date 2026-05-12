@@ -1,4 +1,5 @@
 // src/components/ActivityCard.jsx
+import React from 'react'
 import { useState } from 'react'
 import { FileText, Trash2, Eye } from 'lucide-react'
 import { exportPdf, exportDoc } from '@/lib/export'
@@ -12,7 +13,7 @@ const COLORS = {
   'Caso':         { bg: '#fff7ed', fg: '#d97706' },
   'Ejercicios':   { bg: '#fff1f2', fg: '#dc2626' },
 }
-const EMOJI = { 'Cuestionario':'📝', 'Mapa Mental':'🗺️', 'Ensayo':'✍️', 'Caso':'🔍', 'Ejercicios':'🧮' }
+const EMOJI = { 'Cuestionario':'', 'Mapa Mental':'', 'Ensayo':'', 'Caso':'', 'Ejercicios':'' }
 
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -29,7 +30,7 @@ export default function ActivityCard({ activity: act, onDelete }) {
         <div className="px-4 pt-4 pb-3 border-b border-gray-50">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold"
             style={{ background: tc.bg, color: tc.fg }}>
-            {EMOJI[act.type] ?? '📄'} {act.type}
+            {EMOJI[act.type] ?? ''} {act.type}
           </span>
         </div>
 
@@ -37,9 +38,9 @@ export default function ActivityCard({ activity: act, onDelete }) {
         <div className="px-4 py-3">
           <h3 className="text-[14px] font-bold text-gray-900 leading-snug line-clamp-2 mb-2">{act.title}</h3>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-gray-400">
-            <span>📚 {act.subject}</span>
-            <span>🎓 {act.level}</span>
-            <span>🕐 {fmtDate(act.createdAt)}</span>
+            <span> {act.subject}</span>
+            <span> {act.level}</span>
+            <span> {fmtDate(act.createdAt)}</span>
           </div>
         </div>
 
@@ -59,7 +60,7 @@ export default function ActivityCard({ activity: act, onDelete }) {
               className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition-colors">
               <span className="text-[11px] font-bold">PDF</span>
             </button>
-            <button onClick={() => onDelete(act.id)} title="Eliminar"
+            <button onClick={() => onDelete(act.firestoreId)} title="Eliminar"
               className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors">
               <Trash2 size={13} />
             </button>

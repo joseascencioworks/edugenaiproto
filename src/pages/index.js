@@ -1,4 +1,5 @@
 // src/pages/index.js
+import React from 'react'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { getSession } from '@/lib/db'
