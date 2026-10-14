@@ -26,7 +26,9 @@ const INSTRS = {
 export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
-    return res.status(405).end()
+    return res.status(405).json({
+      message: 'Método no permitido',
+    })
   }
 
   try {
@@ -42,33 +44,64 @@ export default async function handler(req, res) {
       userId
     } = req.body
 
-    const prompt = `
-Eres un experto pedagogo para educación en México.
+    if (!topic || !topic.trim()) {
+      return res.status(400).json({
+        message: 'El tema es obligatorio',
+      })
+    }
 
-Genera una actividad educativa COMPLETA.
+    const prompt = `
+Eres un experto pedagogo especializado en educación en México.
+
+Genera una actividad educativa COMPLETA, clara y lista para ser utilizada por un docente.
+
+DATOS DE LA ACTIVIDAD:
 
 Materia: ${subject}
 Tema: ${topic}
-Nivel: ${level}
-Tipo: ${type}
+Nivel educativo: ${level}
+Tipo de actividad: ${type}
 Dificultad: ${diff}
 
-${extra ? `Indicaciones extra: ${extra}` : ''}
+${extra ? `Indicaciones adicionales del docente: ${extra}` : ''}
 
-${INSTRS[type]?.(qty)}
+${INSTRS[type]?.(qty) || ''}
 
-FORMATO EN MARKDOWN:
+REQUISITOS:
+
+- La actividad debe estar relacionada directamente con el tema indicado.
+- Adapta el contenido al nivel educativo.
+- Utiliza lenguaje claro y académico.
+- No inventes información que no sea necesaria.
+- La actividad debe poder utilizarse directamente por un docente.
+- Incluye criterios claros de evaluación.
+- No agregues explicaciones sobre cómo generaste la actividad.
+
+FORMATO OBLIGATORIO EN MARKDOWN:
 
 # Título
 
-## 🎯 Objetivos
-## 📋 Instrucciones
-## 📝 Actividad
-## ✅ Evaluación
+## Objetivos
+
+Escribe los objetivos de aprendizaje.
+
+## Instrucciones
+
+Explica claramente qué debe hacer el estudiante.
+
+## Actividad
+
+Desarrolla completamente la actividad.
+
+## Evaluación
+
+Incluye criterios o una rúbrica sencilla para evaluar el trabajo.
 `
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+
+      // Modelo actual de Groq
+      model: "openai/gpt-oss-120b",
 
       messages: [
         {
@@ -83,6 +116,10 @@ FORMATO EN MARKDOWN:
 
     const content =
       completion.choices[0]?.message?.content || ''
+
+    if (!content) {
+      throw new Error('Groq no devolvió contenido')
+    }
 
     const title =
       content.match(/^#\s+(.+)/m)?.[1]?.trim()
@@ -108,7 +145,7 @@ FORMATO EN MARKDOWN:
     console.error("ERROR GROQ:", error)
 
     return res.status(500).json({
-      message: error.message || 'Error generando actividad'
+      message: error.message || 'Error generando actividad',
     })
   }
 }
