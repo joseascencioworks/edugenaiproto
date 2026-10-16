@@ -26,7 +26,7 @@ function UColimaLogo() {
   return (
     <div className="flex items-center gap-2.5">
       <img
-        src="/Logo_de_la_Universidad_de_Colima.png"
+        src="assets\UDC_logo.png"
         alt="Universidad de Colima"
         className="w-9 h-9 object-contain shrink-0"
       />
@@ -90,30 +90,7 @@ export default function Layout({ children, user, active }) {
 
           {/* Right: Quick Action Icons & Logout */}
           <div className="flex items-center gap-3 sm:gap-4 text-slate-500">
-            <button
-              type="button"
-              title="Notificaciones / Correo"
-              className="p-1 hover:text-[#232368] transition-colors"
-              onClick={() => toast('No hay mensajes nuevos')}
-            >
-              <Mail size={17} />
-            </button>
-            <button
-              type="button"
-              title="Calendario"
-              className="p-1 hover:text-[#232368] transition-colors"
-              onClick={() => toast('Calendario escolar AGO-2026 / ENE-2027')}
-            >
-              <Calendar size={17} />
-            </button>
-            <button
-              type="button"
-              title="Portafolio Docente"
-              className="p-1 hover:text-[#232368] transition-colors"
-              onClick={() => router.push('/activities')}
-            >
-              <Briefcase size={17} />
-            </button>
+            
             <button
               type="button"
               onClick={logout}

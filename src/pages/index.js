@@ -15,7 +15,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#eef1f6]">
       <div className="w-9 h-9 border-3 border-[#1c335d] border-t-transparent rounded-full animate-spin mb-3" />
       <span className="text-xs font-semibold text-[#1e2554] tracking-wide">
-        Cargando portal SICEUC...
+        Cargando portal EduGenAI...
       </span>
     </div>
   )
