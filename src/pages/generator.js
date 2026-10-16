@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -8,6 +7,7 @@ import Layout from '@/components/Layout'
 import md2html from '@/lib/markdown'
 import { exportPdf, exportDoc } from '@/lib/export'
 import toast from 'react-hot-toast'
+import { Sparkles, FileText, Download, CheckCircle2 } from 'lucide-react'
 
 const SUBJECTS = [
   'Accesibilidad de Contenidos',
@@ -33,11 +33,11 @@ const TYPES = [
 ]
 
 const COLORS = {
-  Cuestionario: { bg: '#eff6ff', fg: '#2563eb' },
-  'Mapa Mental': { bg: '#f0fdf4', fg: '#059669' },
-  Ensayo: { bg: '#fdf4ff', fg: '#7c3aed' },
-  Caso: { bg: '#fff7ed', fg: '#d97706' },
-  Ejercicios: { bg: '#fff1f2', fg: '#dc2626' },
+  Cuestionario: { bg: '#eceafc', fg: '#2b3085' },
+  'Mapa Mental': { bg: '#e6fffa', fg: '#0f766e' },
+  Ensayo: { bg: '#f1f5f9', fg: '#334155' },
+  Caso: { bg: '#eff6ff', fg: '#1e40af' },
+  Ejercicios: { bg: '#fef2f2', fg: '#991b1b' },
 }
 
 export default function Generator() {
@@ -151,26 +151,45 @@ export default function Generator() {
   }
 
   const tc = result
-    ? COLORS[result.type] || { bg: '#f3f4f6', fg: '#374151' }
+    ? COLORS[result.type] || { bg: '#f1f3f7', fg: '#334155' }
     : null
 
   // Esperar a que Firebase termine de comprobar la sesión
   if (checkingAuth || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Comprobando sesión...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#eef1f6]">
+        <div className="text-center">
+          <div className="w-9 h-9 border-3 border-[#1c335d] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs font-semibold text-[#1e2554] tracking-wide">
+            Cargando generador SICEUC...
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
     <Layout user={user} active="generator">
-      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
         {/* Formulario */}
-        <div className="card p-5 lg:sticky lg:top-[76px]">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+        <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] lg:sticky lg:top-[76px]">
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+            <div className="w-8 h-8 rounded-xl bg-[#eceafc] flex items-center justify-center text-[#2b3085]">
+              <Sparkles size={16} />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-[#232368]">
+                Parámetros de la Actividad
+              </h2>
+              <p className="text-[11px] text-slate-400">
+                Configura los detalles pedagógicos
+              </p>
+            </div>
+          </div>
+
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#232368] mb-2">
             Materia
-          </p>
+          </label>
 
           <div className="flex flex-wrap gap-1.5 mb-4">
             {SUBJECTS.map((s) => (
@@ -178,10 +197,10 @@ export default function Generator() {
                 key={s}
                 type="button"
                 onClick={() => setSubject(s)}
-                className={`px-3 py-1.5 rounded-full text-[13px] font-semibold border transition-all ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
                   subject === s
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-blue-300'
+                    ? 'bg-[#1c335d] border-[#1c335d] text-white shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-[#1c335d]/40 hover:bg-slate-50'
                 }`}
               >
                 {s}
@@ -198,9 +217,9 @@ export default function Generator() {
             />
           )}
 
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#232368] mb-2">
             Tema *
-          </p>
+          </label>
 
           <input
             className="input mb-4"
@@ -215,9 +234,9 @@ export default function Generator() {
             }}
           />
 
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">
-            Nivel
-          </p>
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#232368] mb-2">
+            Nivel Educativo
+          </label>
 
           <select
             className="input mb-4"
@@ -231,38 +250,37 @@ export default function Generator() {
             ))}
           </select>
 
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">
-            Tipo
-          </p>
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#232368] mb-2">
+            Tipo de Actividad
+          </label>
 
           <div className="grid grid-cols-5 gap-1.5 mb-4">
-            {TYPES.map(({ value }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setType(value)}
-                className={`flex flex-col items-center py-2.5 rounded-xl border-[1.5px] transition-all ${
-                  type === value
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-gray-50 hover:border-blue-200'
-                }`}
-              >
-                <span
-                  className={`text-[10px] font-bold ${
-                    type === value ? 'text-blue-600' : 'text-gray-500'
+            {TYPES.map(({ value }) => {
+              const isSelected = type === value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setType(value)}
+                  className={`flex flex-col items-center py-2 px-1 rounded-xl border text-center transition-all ${
+                    isSelected
+                      ? 'border-[#1c335d] bg-[#eceafc] text-[#2b3085] shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-[#1c335d]/40 text-slate-600'
                   }`}
                 >
-                  {value}
-                </span>
-              </button>
-            ))}
+                  <span className="text-[10px] font-bold leading-tight">
+                    {value}
+                  </span>
+                </button>
+              )
+            })}
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#232368] mb-2">
                 Cantidad
-              </p>
+              </label>
 
               <select
                 className="input"
@@ -278,9 +296,9 @@ export default function Generator() {
             </div>
 
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#232368] mb-2">
                 Dificultad
-              </p>
+              </label>
 
               <select
                 className="input"
@@ -296,13 +314,13 @@ export default function Generator() {
             </div>
           </div>
 
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">
-            Instrucciones extra
-          </p>
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#232368] mb-2">
+            Instrucciones adicionales (opcional)
+          </label>
 
           <textarea
-            className="input min-h-[72px] resize-y mb-4"
-            placeholder="Opcional..."
+            className="input min-h-[76px] resize-y mb-5"
+            placeholder="Ej. Enfatizar aplicación práctica..."
             value={extra}
             onChange={(e) => setExtra(e.target.value)}
           />
@@ -311,119 +329,113 @@ export default function Generator() {
             type="button"
             onClick={generate}
             disabled={generating}
-            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 transition-all"
+            className="w-full py-3.5 bg-gradient-to-r from-[#103847] via-[#163252] to-[#1c335d] text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm hover:shadow-md hover:opacity-95 transition-all disabled:opacity-60"
           >
-            {generating ? 'Generando...' : 'Generar con IA'}
+            <Sparkles size={16} />
+            <span>{generating ? 'Generando con IA...' : 'Generar con IA'}</span>
           </button>
         </div>
 
         {/* Resultado */}
-        <div className="card p-6 min-h-[480px] flex flex-col">
+        <div className="bg-white rounded-3xl border border-slate-200/80 p-6 min-h-[520px] flex flex-col shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
           {!result && !generating && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-400 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-3xl">
-                ✨
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400 text-center py-12">
+              <div className="w-16 h-16 rounded-2xl bg-[#f1f3f7] flex items-center justify-center text-[#232368]">
+                <FileText size={28} />
               </div>
-              <p className="font-semibold text-gray-600">
-                Listo para generar
+              <p className="font-bold text-[#232368] text-base">
+                Listo para generar actividad
               </p>
-              <p className="text-sm max-w-xs">
-                Completa los campos y genera tu actividad educativa.
+              <p className="text-xs text-slate-400 max-w-sm">
+                Configura los parámetros a la izquierda y presiona &quot;Generar con IA&quot; para obtener la actividad.
               </p>
             </div>
           )}
 
           {generating && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-2xl animate-pulse">
-                ✨
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 py-16">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-[#103847] to-[#1c335d] flex items-center justify-center text-white shadow-md animate-pulse">
+                <Sparkles size={26} />
               </div>
 
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"
+                    className="w-2.5 h-2.5 rounded-full bg-[#1c335d] animate-pulse"
                     style={{ animationDelay: `${i * 200}ms` }}
                   />
                 ))}
               </div>
 
-              <p className="font-semibold text-gray-700">
-                Generando con IA...
+              <p className="font-bold text-[#232368] text-sm">
+                Generando actividad pedagógica con IA...
               </p>
-              <p className="text-sm text-gray-400">
-                Esto puede tardar unos segundos.
+              <p className="text-xs text-slate-400">
+                El modelo está estructurando los contenidos según los parámetros seleccionados.
               </p>
             </div>
           )}
 
           {result && !generating && (
             <>
-              <div className="flex items-start justify-between gap-4 pb-4 mb-4 border-b border-gray-100">
+              {/* Result Header */}
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 mb-5 border-b border-slate-100">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-2 leading-tight">
+                  <h2 className="text-base sm:text-lg font-bold text-[#232368] mb-2 leading-tight">
                     {result.title}
                   </h2>
 
                   <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { label: result.type, ...tc },
-                      {
-                        label: result.subject,
-                        bg: '#eff6ff',
-                        fg: '#2563eb',
-                      },
-                      {
-                        label: result.level,
-                        bg: '#f0fdf4',
-                        fg: '#059669',
-                      },
-                      {
-                        label: result.diff,
-                        bg: '#fdf4ff',
-                        fg: '#7c3aed',
-                      },
-                    ].map(({ label, bg, fg }, index) => (
-                      <span
-                        key={`${label}-${index}`}
-                        className="px-2.5 py-1 rounded-full text-[11px] font-bold"
-                        style={{ background: bg, color: fg }}
-                      >
-                        {label}
-                      </span>
-                    ))}
+                    <span
+                      className="px-2.5 py-0.5 rounded-full text-xs font-bold"
+                      style={{ background: tc.bg, color: tc.fg }}
+                    >
+                      ✦ {result.type}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f7] text-[#232368]">
+                      {result.subject}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f7] text-[#232368]">
+                      {result.level}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f7] text-[#232368]">
+                      {result.diff}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => {
                       exportDoc(result)
-                      toast.success('DOC descargado')
+                      toast.success('Documento DOC descargado')
                     }}
-                    className="btn-ghost text-xs px-3 py-2"
+                    className="btn-ghost text-xs px-3 py-2 flex items-center gap-1.5"
                   >
-                    DOC
+                    <Download size={13} />
+                    <span>DOC</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() =>
                       exportPdf(result).then(() =>
-                        toast.success('PDF descargado')
+                        toast.success('Documento PDF descargado')
                       )
                     }
-                    className="btn-ghost text-xs px-3 py-2"
+                    className="btn-ghost text-xs px-3 py-2 flex items-center gap-1.5"
                   >
-                    PDF
+                    <Download size={13} />
+                    <span>PDF</span>
                   </button>
                 </div>
               </div>
 
+              {/* Rendered Markdown Content */}
               <div
-                className="flex-1 overflow-y-auto"
+                className="flex-1 overflow-y-auto text-sm leading-relaxed text-slate-700 space-y-3 pr-2"
                 dangerouslySetInnerHTML={{
                   __html: md2html(result.content),
                 }}

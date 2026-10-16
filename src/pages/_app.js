@@ -10,7 +10,13 @@ export default function App({ Component, pageProps }) {
       <Toaster
         position="top-right"
         toastOptions={{
-          style: { fontFamily: 'Plus Jakarta Sans', fontSize: 13, borderRadius: 12 },
+          style: {
+            fontFamily: 'Plus Jakarta Sans, sans-serif',
+            fontSize: 13,
+            borderRadius: 12,
+            border: '1px solid #e2e8f0',
+            color: '#1e2554',
+          },
         }}
       />
     </>
