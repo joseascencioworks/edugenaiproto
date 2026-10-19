@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import { useAuth } from '@/lib/useAuth'
 import { saveActivity } from '@/lib/db'
 import Layout from '@/components/Layout'
+import MindMapVisual from '@/components/MindMapVisual'
 import md2html from '@/lib/markdown'
 import { exportPdf, exportDoc } from '@/lib/export'
 import toast from 'react-hot-toast'
@@ -42,9 +42,7 @@ const COLORS = {
 
 export default function Generator() {
   const router = useRouter()
-
-  const [user, setUser] = useState(null)
-  const [checkingAuth, setCheckingAuth] = useState(true)
+  const { user, checkingAuth } = useAuth({ requireAuth: true, redirectTo: '/login' })
   const [generating, setGen] = useState(false)
   const [result, setResult] = useState(null)
 
@@ -56,48 +54,6 @@ export default function Generator() {
   const [qty, setQty] = useState('10')
   const [diff, setDiff] = useState('Intermedio')
   const [extra, setExtra] = useState('')
-
-  // Comprobar la sesión mediante Firebase
-  useEffect(() => {
-    let active = true
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (firebaseUser) => {
-        if (!active) return
-
-        if (!firebaseUser) {
-          setUser(null)
-          setCheckingAuth(false)
-          router.replace('/login')
-          return
-        }
-
-        setUser({
-          uid: firebaseUser.uid,
-          name: firebaseUser.displayName || 'Docente',
-          email: firebaseUser.email,
-        })
-
-        setCheckingAuth(false)
-      },
-      (error) => {
-        console.error('Error al comprobar la sesión:', error)
-
-        if (active) {
-          setUser(null)
-          setCheckingAuth(false)
-          toast.error('No se pudo comprobar la sesión.')
-          router.replace('/login')
-        }
-      }
-    )
-
-    return () => {
-      active = false
-      unsubscribe()
-    }
-  }, [router])
 
   // Generar una actividad con IA y guardarla en Firestore
   async function generate() {
@@ -433,13 +389,19 @@ export default function Generator() {
                 </div>
               </div>
 
-              {/* Rendered Markdown Content */}
-              <div
-                className="flex-1 overflow-y-auto text-sm leading-relaxed text-slate-700 space-y-3 pr-2"
-                dangerouslySetInnerHTML={{
-                  __html: md2html(result.content),
-                }}
-              />
+              {/* Rendered Content: Visual Mind Map or Structured Markdown */}
+              <div className="flex-1 overflow-y-auto pr-2">
+                {result.type === 'Mapa Mental' ? (
+                  <MindMapVisual activity={result} />
+                ) : (
+                  <div
+                    className="text-sm leading-relaxed text-slate-700 space-y-3"
+                    dangerouslySetInnerHTML={{
+                      __html: md2html(result.content),
+                    }}
+                  />
+                )}
+              </div>
             </>
           )}
         </div>

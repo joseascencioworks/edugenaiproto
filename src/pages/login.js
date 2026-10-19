@@ -10,6 +10,7 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { setSession } from '@/lib/session'
 import toast from 'react-hot-toast'
 
 function getAuthError(error) {
@@ -122,6 +123,7 @@ export default function LoginPage() {
       auth,
       (user) => {
         if (user) {
+          setSession(user)
           router.replace('/dashboard')
         } else {
           setCheckingAuth(false)
@@ -146,7 +148,8 @@ export default function LoginPage() {
         prompt: 'select_account',
       })
 
-      await signInWithPopup(auth, provider)
+      const credential = await signInWithPopup(auth, provider)
+      setSession(credential.user)
 
       toast.success('¡Bienvenido a EduGenAI!')
       await router.replace('/dashboard')
@@ -188,7 +191,8 @@ export default function LoginPage() {
 
     try {
       if (tab === 'login') {
-        await signInWithEmailAndPassword(auth, email, password)
+        const credential = await signInWithEmailAndPassword(auth, email, password)
+        setSession(credential.user)
         toast.success('¡Bienvenido a EduGenAI!')
       } else {
         const credential = await createUserWithEmailAndPassword(
@@ -198,6 +202,11 @@ export default function LoginPage() {
         )
 
         await updateProfile(credential.user, {
+          displayName: form.name.trim(),
+        })
+
+        setSession({
+          ...credential.user,
           displayName: form.name.trim(),
         })
 

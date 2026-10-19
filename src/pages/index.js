@@ -1,14 +1,14 @@
 // src/pages/index.js
-import React from 'react'
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { getSession } from '@/lib/db'
+import { getSession } from '@/lib/session'
 
 export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace(getSession() ? '/dashboard' : '/login')
+    const session = getSession()
+    router.replace(session ? '/dashboard' : '/login')
   }, [router])
 
   return (

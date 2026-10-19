@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { FileText, Trash2, Eye, Calendar, BookOpen } from 'lucide-react'
 import { exportPdf, exportDoc } from '@/lib/export'
+import MindMapVisual from '@/components/MindMapVisual'
 import md2html from '@/lib/markdown'
 import toast from 'react-hot-toast'
 
@@ -143,10 +144,16 @@ export default function ActivityCard({ activity: act, onDelete }) {
             </div>
 
             {/* Modal Content */}
-            <div
-              className="flex-1 overflow-y-auto px-6 py-5 text-sm leading-relaxed text-slate-700 space-y-3"
-              dangerouslySetInnerHTML={{ __html: md2html(act.content) }}
-            />
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+              {act.type === 'Mapa Mental' ? (
+                <MindMapVisual activity={act} />
+              ) : (
+                <div
+                  className="text-sm leading-relaxed text-slate-700 space-y-3"
+                  dangerouslySetInnerHTML={{ __html: md2html(act.content) }}
+                />
+              )}
+            </div>
 
             {/* Modal Footer */}
             <div className="px-6 py-3.5 border-t border-slate-100 bg-[#f8fafc] flex items-center justify-between shrink-0">

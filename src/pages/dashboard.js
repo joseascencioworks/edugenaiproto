@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
 import { getActivities, deleteActivity } from '@/lib/db'
+import { useAuth } from '@/lib/useAuth'
 import Layout from '@/components/Layout'
 import ActivityCard from '@/components/ActivityCard'
 import toast from 'react-hot-toast'
@@ -14,74 +13,51 @@ import {
   Award,
   Layers,
   ArrowRight,
-  User,
-  Shield,
-  School,
   Hash,
-  Calendar,
+  Loader2,
 } from 'lucide-react'
 
 export default function Dashboard() {
   const router = useRouter()
+  const { user, checkingAuth } = useAuth({ requireAuth: true, redirectTo: '/login' })
 
-  const [user, setUser] = useState(null)
   const [activities, setActivities] = useState([])
-  const [checkingAuth, setCheckingAuth] = useState(true)
+  const [loadingActivities, setLoadingActivities] = useState(true)
 
+  // Cargar actividades cuando el usuario esté disponible
   useEffect(() => {
+    if (!user?.uid) return
+
     let active = true
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!active) return
-
-      if (!firebaseUser) {
-        setUser(null)
-        setCheckingAuth(false)
-        router.replace('/login')
-        return
-      }
-
-      setUser({
-        uid: firebaseUser.uid,
-        name: firebaseUser.displayName || 'Docente',
-        email: firebaseUser.email,
-      })
-
-      try {
-        const result = await getActivities(firebaseUser.uid)
-
+    getActivities(user.uid)
+      .then((data) => {
         if (active) {
-          setActivities(result)
+          setActivities(data)
+          setLoadingActivities(false)
         }
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error('Error al cargar actividades:', error)
-
         if (active) {
           toast.error('No se pudieron cargar las actividades.')
+          setLoadingActivities(false)
         }
-      } finally {
-        if (active) {
-          setCheckingAuth(false)
-        }
-      }
-    })
+      })
 
     return () => {
       active = false
-      unsubscribe()
     }
-  }, [router])
+  }, [user?.uid])
 
   async function handleDelete(id) {
     if (!confirm('¿Eliminar esta actividad?')) return
 
     try {
-      await deleteActivity(id)
-
+      await deleteActivity(id, user?.uid)
       setActivities((prev) =>
-        prev.filter((activity) => activity.firestoreId !== id)
+        prev.filter((activity) => (activity.firestoreId || activity.id) !== id)
       )
-
       toast.success('Actividad eliminada')
     } catch (error) {
       console.error('Error al eliminar actividad:', error)
@@ -89,19 +65,21 @@ export default function Dashboard() {
     }
   }
 
-  const counts = {
-    total: activities.length,
-    quiz: activities.filter((a) => a.type === 'Cuestionario').length,
-    essay: activities.filter((a) => ['Ensayo', 'Ejercicios'].includes(a.type)).length,
-    other: activities.filter((a) => ['Mapa Mental', 'Caso'].includes(a.type)).length,
-  }
+  const counts = useMemo(() => {
+    return {
+      total: activities.length,
+      quiz: activities.filter((a) => a.type === 'Cuestionario').length,
+      essay: activities.filter((a) => ['Ensayo', 'Ejercicios'].includes(a.type)).length,
+      other: activities.filter((a) => ['Mapa Mental', 'Caso'].includes(a.type)).length,
+    }
+  }, [activities])
 
-  const stats = [
+  const stats = useMemo(() => [
     { label: 'Total de Actividades', value: counts.total, icon: Layers, bg: '#f1f3f7' },
     { label: 'Cuestionarios', value: counts.quiz, icon: CheckCircle2, bg: '#f1f3f7' },
     { label: 'Ensayos y Ejercicios', value: counts.essay, icon: Award, bg: '#f1f3f7' },
     { label: 'Mapas y Casos', value: counts.other, icon: BookOpen, bg: '#f1f3f7' },
-  ]
+  ], [counts])
 
   if (checkingAuth || !user) {
     return (
@@ -109,7 +87,7 @@ export default function Dashboard() {
         <div className="text-center">
           <div className="w-9 h-9 border-3 border-[#1c335d] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-xs font-semibold text-[#1e2554] tracking-wide">
-            Cargando portal SICEUC...
+            Cargando EdugenAI ...
           </p>
         </div>
       </div>
@@ -117,12 +95,13 @@ export default function Dashboard() {
   }
 
   const workerId = user.uid ? user.uid.replace(/[^0-9]/g, '').slice(0, 8) || '20190922' : '20190922'
+  const isUserActive = (user.status || 'Activo').toLowerCase() === 'activo'
 
   return (
     <Layout user={user} active="dashboard">
       {/* Upper Section: Credential Card & Recommended Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
-        {/* Left: SICEUC Credential Card */}
+        {/* Left: Credential Card */}
         <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06)] overflow-hidden">
           {/* Top Banner Gradient */}
           <div className="bg-gradient-to-r from-[#133a4c] via-[#1b3558] to-[#252f5c] px-6 py-5 text-white flex items-center gap-4 relative">
@@ -134,73 +113,57 @@ export default function Dashboard() {
                 {user.name}
               </h2>
               <p className="text-xs font-medium text-[#5eead4] uppercase tracking-wider mt-0.5">
-                FACULTAD DE TELEMÁTICA
+                DOCENTE
               </p>
             </div>
           </div>
 
-          {/* Card Body */}
-          <div className="p-6 space-y-4">
-            {/* Account Badge Pill */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#eceafc] text-[#2b3085] text-xs font-bold">
-              <span>✦</span>
-              <span>Número de cuenta / ID: {workerId}</span>
-            </div>
-
-            {/* Info Rows */}
-            <div className="space-y-3.5 pt-1">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#f1f3f7] flex items-center justify-center text-[#4a5568] shrink-0">
-                  <User size={15} />
+          {/* Card Body: Only ID and Status */}
+          <div className="p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Account / ID Box */}
+              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#f8fafc] border border-slate-100">
+                <div className="w-10 h-10 rounded-xl bg-[#eceafc] flex items-center justify-center text-[#2b3085] shrink-0 font-bold">
+                  <Hash size={18} />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    CORREO ELECTRÓNICO
+                    Número de cuenta / ID
                   </p>
-                  <p className="text-xs font-bold text-[#1e2554] truncate">
-                    {user.email || 'correo@ucol.mx'}
+                  <p className="text-sm font-extrabold text-[#1e2554] truncate">
+                    {workerId}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#f1f3f7] flex items-center justify-center text-[#4a5568] shrink-0">
-                  <School size={15} />
+              {/* Status Box */}
+              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#f8fafc] border border-slate-100">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    isUserActive ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                  }`}
+                >
+                  <CheckCircle2 size={18} />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    PLANTEL
+                    Estatus
                   </p>
-                  <p className="text-xs font-bold text-[#1e2554] truncate">
-                    FACULTAD DE TELEMÁTICA · UNIVERSIDAD DE COLIMA
-                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        isUserActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-extrabold ${
+                        isUserActive ? 'text-emerald-700' : 'text-amber-700'
+                      }`}
+                    >
+                      {isUserActive ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#f1f3f7] flex items-center justify-center text-[#4a5568] shrink-0">
-                  <Shield size={15} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    ÁREA / CARRERA
-                  </p>
-                  <p className="text-xs font-bold text-[#1e2554] truncate">
-                    INGENIERÍA DE SOFTWARE / DOCENCIA E INVESTIGACIÓN
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Metadata */}
-            <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 font-medium">
-              <div className="flex items-center gap-1.5">
-                <Calendar size={13} className="text-slate-400" />
-                <span>Ciclo escolar: AGO-2026 / ENE-2027</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Hash size={13} className="text-slate-400" />
-                <span>Estatus: <strong className="text-emerald-700 font-bold">Activo</strong></span>
               </div>
             </div>
           </div>
@@ -229,7 +192,10 @@ export default function Dashboard() {
                   Cuestionarios, exámenes, ensayos y ejercicios
                 </p>
               </div>
-              <ArrowRight size={16} className="text-slate-400 group-hover:text-[#232368] group-hover:translate-x-1 transition-all shrink-0" />
+              <ArrowRight
+                size={16}
+                className="text-slate-400 group-hover:text-[#232368] group-hover:translate-x-1 transition-all shrink-0"
+              />
             </button>
 
             <button
@@ -248,13 +214,16 @@ export default function Dashboard() {
                   Visualizar, exportar a DOC / PDF o eliminar
                 </p>
               </div>
-              <ArrowRight size={16} className="text-slate-400 group-hover:text-[#232368] group-hover:translate-x-1 transition-all shrink-0" />
+              <ArrowRight
+                size={16}
+                className="text-slate-400 group-hover:text-[#232368] group-hover:translate-x-1 transition-all shrink-0"
+              />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Lower Section: "Más opciones" (Stats Cards in SICEUC style) */}
+      {/* Lower Section: "Más opciones" */}
       <div className="mb-8">
         <h2 className="text-lg font-bold text-[#232368] text-center mb-5">
           Más opciones
@@ -299,7 +268,26 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {activities.length === 0 ? (
+        {loadingActivities ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="bg-white rounded-2xl border border-slate-200/70 p-5 animate-pulse h-44 flex flex-col justify-between"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="w-24 h-5 bg-slate-100 rounded-full" />
+                  <div className="w-14 h-4 bg-slate-100 rounded" />
+                </div>
+                <div className="space-y-2">
+                  <div className="w-3/4 h-4 bg-slate-100 rounded" />
+                  <div className="w-1/2 h-3 bg-slate-100 rounded" />
+                </div>
+                <div className="w-full h-8 bg-slate-50 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
           <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-10 text-center flex flex-col items-center justify-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-[#f1f3f7] flex items-center justify-center text-[#232368]">
               <FileText size={24} />
@@ -321,7 +309,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {activities.slice(0, 6).map((activity) => (
               <ActivityCard
-                key={activity.firestoreId}
+                key={activity.firestoreId || activity.id}
                 activity={activity}
                 onDelete={handleDelete}
               />

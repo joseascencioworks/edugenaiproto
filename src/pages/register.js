@@ -32,9 +32,12 @@ export default function Register() {
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center gap-2 mb-3">
             <img
-              src="/Logo_de_la_Universidad_de_Colima.png"
+              src="/Logo_de_la_Universidad_de_Colima.svg"
               alt="Universidad de Colima"
               className="w-12 h-12 object-contain"
+              onError={(e) => {
+                e.currentTarget.src = '/Logo_de_la_Universidad_de_Colima.png'
+              }}
             />
           </div>
 

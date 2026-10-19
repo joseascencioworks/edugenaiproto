@@ -4,13 +4,15 @@ import LoginPage from '../src/pages/login'
 describe('Login', () => {
   it('renderiza formulario', () => {
     render(<LoginPage />)
-    expect(screen.getByText(/iniciar sesión/i)).toBeInTheDocument()
+    const elements = screen.getAllByText(/iniciar sesión/i)
+    expect(elements.length).toBeGreaterThan(0)
   })
 
   it('valida campos vacíos', () => {
     render(<LoginPage />)
 
-    const btn = screen.getAllByRole('button')[2] // botón submit
-    fireEvent.click(btn)
+    const buttons = screen.getAllByRole('button')
+    const submitBtn = buttons.find((btn) => btn.getAttribute('type') === 'submit') || buttons[buttons.length - 1]
+    fireEvent.click(submitBtn)
   })
 })

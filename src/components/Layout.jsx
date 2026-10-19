@@ -8,9 +8,6 @@ import {
   Sparkles,
   FileText,
   LogOut,
-  Mail,
-  Calendar,
-  Briefcase,
   Plus,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -23,21 +20,20 @@ const NAV = [
 ]
 
 function UColimaLogo() {
+  const [src, setSrc] = useState('/Logo_de_la_Universidad_de_Colima.svg')
+
   return (
     <div className="flex items-center gap-2.5">
       <img
-        src="assets\UDC_logo.png"
+        src={src}
         alt="Universidad de Colima"
-        className="w-9 h-9 object-contain shrink-0"
+        className="h-9 w-auto max-w-[160px] object-contain shrink-0"
+        onError={() => {
+          if (src !== '/Logo_de_la_Universidad_de_Colima.png') {
+            setSrc('/Logo_de_la_Universidad_de_Colima.png')
+          }
+        }}
       />
-      <div className="flex flex-col leading-none">
-        <span className="text-[11px] font-extrabold tracking-wider text-[#1e2554] uppercase font-serif">
-          UNIVERSIDAD
-        </span>
-        <span className="text-[9px] font-bold tracking-widest text-[#1e2554] uppercase font-serif mt-0.5">
-          DE COLIMA
-        </span>
-      </div>
     </div>
   )
 }
@@ -52,9 +48,7 @@ export default function Layout({ children, user, active }) {
     setLoggingOut(true)
 
     try {
-      try {
-        clearSession()
-      } catch (e) {}
+      clearSession()
       await signOut(auth)
       toast.success('Sesión cerrada correctamente')
       await router.replace('/login')
@@ -78,19 +72,14 @@ export default function Layout({ children, user, active }) {
             <UColimaLogo />
           </Link>
 
-          {/* Center: SICEUC Portal Identity */}
           <div className="text-center">
-            <span className="text-sm sm:text-base font-extrabold tracking-widest text-[#232368] font-sans">
-              SICEUC
-            </span>
             <span className="hidden sm:inline-block ml-2 text-xs font-semibold text-slate-400">
-              · EdugenIA
+              EdugenAI
             </span>
           </div>
 
           {/* Right: Quick Action Icons & Logout */}
           <div className="flex items-center gap-3 sm:gap-4 text-slate-500">
-            
             <button
               type="button"
               onClick={logout}
@@ -125,7 +114,7 @@ export default function Layout({ children, user, active }) {
                 {displayName}
               </h2>
               <p className="text-[10px] sm:text-[11px] font-semibold text-[#5eead4] uppercase tracking-wider">
-                FACULTAD DE TELEMÁTICA · DOCENTE
+                DOCENTE
               </p>
             </div>
           </div>
@@ -171,7 +160,7 @@ export default function Layout({ children, user, active }) {
       {/* SICEUC Footer Bar */}
       <footer className="w-full bg-white border-t border-slate-200/70 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4">
-          <p>© Universidad de Colima · EdugenIA · Sistema Integral de Gestión Educativa con Inteligencia Artificial</p>
+          <p> Universidad de Colima · EdugenAI · Sistema Integral de Gestión Educativa con Inteligencia Artificial</p>
         </div>
       </footer>
     </div>

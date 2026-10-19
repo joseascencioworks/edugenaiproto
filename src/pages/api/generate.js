@@ -11,7 +11,14 @@ const INSTRS = {
     `Crea ${q} preguntas de opción múltiple (a,b,c,d). Marca la correcta con ✓ e incluye respuestas.`,
 
   'Mapa Mental': () =>
-    `Crea un mapa mental textual con ramas y subramas.`,
+    `Para el Mapa Mental, estructúralo como un mapa conceptual y mental visual claro:
+- Define un Nodo Central claro con el tema.
+- Desarrolla entre 4 y 6 Ramas Principales. En la sección "## Actividad", usa este formato:
+  - **Nombre de la Rama Principal**: Breve explicación conceptual
+    - Sub-rama 1: Concepto o palabra clave
+    - Sub-rama 2: Detalle o aplicación práctica
+    - Sub-rama 3: Ejemplo o concepto complementario
+Cada rama debe incluir sus sub-ramas con términos clave para generar el diagrama visual de nodos.`,
 
   'Ensayo': (q) =>
     `Crea una guía de ensayo con ${q} puntos de desarrollo.`,
@@ -100,7 +107,6 @@ Incluye criterios o una rúbrica sencilla para evaluar el trabajo.
 
     const completion = await groq.chat.completions.create({
 
-      // Modelo actual de Groq
       model: "openai/gpt-oss-120b",
 
       messages: [
